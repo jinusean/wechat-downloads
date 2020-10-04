@@ -7,10 +7,10 @@ Usage:
 
 from setuptools import setup
 
-APP = ['Watch WeChat Files.py']
+APP = ['Watch WeChat Downloads.py']
 DATA_FILES = ['config.json']
 OPTIONS = dict(
-    iconfile='images/icon.icns',
+    iconfile='assets/icon.icns',
     plist=dict(
         LSBackgroundOnly=True,
         CFBundleIdentifier='com.jameslee.watch_wechat_files',

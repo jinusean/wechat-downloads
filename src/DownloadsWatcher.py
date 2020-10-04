@@ -2,7 +2,9 @@ import shutil
 from pathlib import Path
 from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
+import logging
 
+logger = logging.getLogger(__name__)
 
 def get_filename_pieces(filename):
     try:
@@ -23,56 +25,78 @@ def get_filename_pieces(filename):
     return (file, subextension, extension)
 
 
+def on_moved(event):
+    # image files are first 'created' as a temp file and then moved once it is downloaded
+    logger.info('Moved', Path(event.src_path).name, Path(event.dest_path).name)
+    a = event
+
+
+def get_on_moved(config):
+    def on_moved(event):
+        logger.info('Moved', Path(event.src_path).name + ' -> ' + Path(event.dest_path).name)
+        try:
+            save_dir = Path(config['save_directory'])
+            path = Path(event.dest_path)
+            filename = path.name
+            try:
+                shutil.copyfile(path, save_dir / filename)
+            except IOError as io_error:
+                # if save_dir has not been made yet
+                save_dir.mkdir()
+                shutil.copyfile(path, save_dir / filename)
+            logger.info('Saved:', Path(event.src_path).name)
+        except Exception as e:
+            logger.info('on_created Error:')
+            logger.info(e)
+    return on_moved
+
 def get_on_created(config):
     def on_created(event):
+        logger.info('Created:', Path(event.src_path).name)
         try:
             save_dir = Path(config['save_directory'])
             path = Path(event.src_path)
-
-            print('Received', path.name)
-
-            if not path.is_file():
-                return
-
             filename = path.name
-            if filename in config['ignore_list']:
+
+            if not path.is_file() or filename in config['ignore_list']:
                 return
 
             file, subextension, extension = get_filename_pieces(filename)
 
-            if '_thumb' in subextension or '_hd' in subextension or '_tmp' in subextension:
-                # ignore thumb files and HD files
-                return
-
-            if subextension == '.pic':
-                hd_filename = file + '.pic_hd' + extension
-                hd_filepath = path.absolute().parent / hd_filename
-                if hd_filepath.exists():
-                    path = hd_filepath
+            for invalid_subextension in config['invalid_subextensions']:
+                if invalid_subextension in subextension:
+                    return
 
             try:
                 shutil.copyfile(path, save_dir / filename)
             except IOError as io_error:
+                # if save_dir has not been made yet
                 save_dir.mkdir()
                 shutil.copyfile(path, save_dir / filename)
 
-            print('Saved ' + filename + ' to ' + str(save_dir))
+            logger.info('Saved:', Path(event.src_path).name)
         except Exception as e:
-            print('on_created Error:')
-            print(e)
+            logger.info('on_created Error:')
+            logger.info(e)
 
     return on_created
 
 
-class MessagesWatcher:
+class DownloadsWatcher:
     def __init__(self, config):
         self.observers = []
         self.config = config
+        self._directory = None
+        self._watching_dirs =[]
 
     def stop(self):
         for observer in self.observers:
             observer.stop()
+            observer.join()
         self.observers = []
+
+        self._directory = None
+        self._watching_dirs = []
 
     def find_latest_version_directory(self):
         last_modified = 0
@@ -93,28 +117,35 @@ class MessagesWatcher:
     def start(self):
         latest_version_directory = self.find_latest_version_directory()
 
-        for dirpath in self.find_message_temp_dirs(latest_version_directory):
+        message_temps = self.find_message_temp_dirs(latest_version_directory)
+        if len(message_temps) == 0:
+            logger.info('No message temps found...')
+
+        for dirpath in message_temps:
             # Create handler
             patterns = "*"
             ignore_patterns = ""
-            ignore_directories = False
+            ignore_directories = True
             case_sensitive = True
             my_event_handler = PatternMatchingEventHandler(patterns, ignore_patterns, ignore_directories,
                                                            case_sensitive)
             my_event_handler.on_created = get_on_created(self.config)
+            my_event_handler.on_moved = get_on_moved(self.config)
 
             # Create observer
             observer = Observer()
             observer.schedule(my_event_handler, str(dirpath), recursive=True)
             observer.start()
 
-            print('- watching:', str(dirpath)[len(str(latest_version_directory)):])
+            logger.info('Watching: ' + str(dirpath)[len(str(latest_version_directory)):], )
             self.observers.append(observer)
+            self._watching_dirs.append(str(dirpath))
+
+        self._directory = latest_version_directory
 
     def find_message_temp_dirs(self, path):
         paths = []
         for dirpath in Path(path).iterdir():
-
             if dirpath.name == 'Message':
                 dirpath = dirpath / 'MessageTemp'
                 dirpath.mkdir(exist_ok=True)
