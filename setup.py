@@ -7,19 +7,18 @@ Usage:
 
 from setuptools import setup
 
-APP = ['Watch WeChat Downloads.py']
-DATA_FILES = ['config.json']
-OPTIONS = dict(
-    iconfile='assets/icon.icns',
-    plist=dict(
-        LSBackgroundOnly=True,
-        CFBundleIdentifier='com.jameslee.watch_wechat_files',
-    )
-)
-
 setup(
-    app=APP,
-    data_files=DATA_FILES,
-    options={'py2app': OPTIONS},
+    name='WeChat Downloads',
+    app=['main_prod.py'],
+    data_files=['config.json'],
+    options={
+        'py2app': {
+            'iconfile': 'assets/icon.icns',
+            'plist': {
+                'LSBackgroundOnly': True,
+                'CFBundleIdentifier': 'com.jameslee.watch_wechat_files',
+            }
+        }
+    },
     setup_requires=['py2app'],
 )

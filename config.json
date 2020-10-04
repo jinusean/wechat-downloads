@@ -2,5 +2,10 @@
   "wechat_directory": "Library/Containers/com.tencent.xinWeChat/Data/Library/Application Support/com.tencent.xinWeChat",
   "save_directory": "Documents/WeChat Files",
   "is_initialized": false,
-  "ignore_list": [".DS_Store"]
+  "ignore_list": [".DS_Store"],
+  "logging":{
+    "directory": "~/Library/Logs/jameslee/",
+    "format": "%(asctime)s::%(name)s (%(levelname)s) %(message)s",
+    "datefmt": "%Y-%m-%dT%H:%M:%S"
+  }
 }

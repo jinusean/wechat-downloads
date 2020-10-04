@@ -1,0 +1,12 @@
+{
+  "name": "wechat-downloads",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "James Lee <lee46james@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "clean": "rm -rf build dist",
+    "build": "yarn clean && python setup.py py2app",
+    "open": "open 'dist/WeChat Downloads.app/Contents/MacOS/WeChat Downloads'"
+  }
+}
