@@ -21,8 +21,8 @@ class WeChatWatcher:
         self.messages_watcher.stop()
 
     def start(self):
-        wechat_directory = self.config["wechat_directory"]
         self.stop()
+        wechat_directory = self.config["wechat_directory"]
 
 
         def get_on_event(mode):
@@ -31,8 +31,9 @@ class WeChatWatcher:
                 if not path.is_dir():
                     logger.info(str(path) + ' created (non-directories are ignored)')
                     return
-                logger.info('Restarting:',event.src_path, mode)
+                logger.info('Restarting:', event.src_path, mode)
                 self.start()
+
             return on_event
 
         # Create handler
@@ -51,4 +52,3 @@ class WeChatWatcher:
         wechat_observer.start()
         logger.info('Starting: ' + wechat_directory)
         self.messages_watcher.start()
-

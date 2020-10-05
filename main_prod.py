@@ -1,3 +1,7 @@
+import os
+
+os.environ['PY_ENV'] = 'production'
+
 if __name__ == '__main__':
     import logging
     from logging.handlers import RotatingFileHandler

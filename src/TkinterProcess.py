@@ -35,8 +35,8 @@ class TkinterProcess(Process):
                     res = messagebox.showinfo(title='WeChatDownloads',message=recv[1])
                     logger.info('showinfo', res)
                     self.pipe_conn.send(res)
-                elif cmd == 'askokcancel':
-                    res = messagebox.askokcancel(title='WeChatDownloads', message=recv[1])
+                elif cmd == 'askyesno':
+                    res = messagebox.askyesno(title='WeChatDownloads', message=recv[1])
                     logger.info('askokcancel', res)
                     self.pipe_conn.send(res)
             except EOFError:

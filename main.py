@@ -10,5 +10,6 @@ if __name__ == '__main__':
 
     # imports must come after logging is configured
     from src.WeChatDownloadsApp import WeChatDownloadsApp
-    app = WeChatDownloadsApp('WD')
+    app = WeChatDownloadsApp()
+
     app.run()

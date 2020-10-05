@@ -12,7 +12,7 @@ class WeChatWatcherThread(Thread):
         self.stop_event = Event()
 
     def restart_watcher(self):
-        self.wechat_watcher.stop()
+        # used when WeChat directory has changed
         self.wechat_watcher.start()
 
     def stop(self):
@@ -20,8 +20,12 @@ class WeChatWatcherThread(Thread):
 
     def run(self):
         logger.info('starting')
-        self.wechat_watcher.start()
-        while not self.stop_event.wait(1):
-            continue
-        self.wechat_watcher.stop()
-        logger.info('stopped')
+        try:
+            self.wechat_watcher.start()
+            while not self.stop_event.wait(1):
+                continue
+            self.wechat_watcher.stop()
+            logger.info('stopped')
+        except Exception as e:
+            print('Thread error')
+            print(e)

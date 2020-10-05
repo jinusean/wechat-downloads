@@ -9,11 +9,11 @@ from setuptools import setup
 
 setup(
     name='WeChat Downloads',
-    app=['main_prod.py'],
-    data_files=['config.json'],
+    app=['test.py'],
+    data_files=['config.json', ('images',['images/icon.icns'])],
     options={
         'py2app': {
-            'iconfile': 'assets/icon.icns',
+            'iconfile': 'images/icon.icns',
             'plist': {
                 'LSBackgroundOnly': True,
                 'CFBundleIdentifier': 'com.jameslee.watch_wechat_files',

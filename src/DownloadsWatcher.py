@@ -52,7 +52,7 @@ def get_on_moved(config):
 
 def get_on_created(config):
     def on_created(event):
-        logger.info('Created:', Path(event.src_path).name)
+        logger.info('Created:', event.src_path)
         try:
             save_dir = Path(config['save_directory'])
             path = Path(event.src_path)
