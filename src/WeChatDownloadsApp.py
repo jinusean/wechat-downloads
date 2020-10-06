@@ -1,7 +1,6 @@
 import rumps
 import json
 import logging
-from pathlib import Path
 import copy
 from .WeChatWatcherThread import WeChatWatcherThread
 from . import mac_dialogs, utils
@@ -27,7 +26,6 @@ class WeChatDownloadsApp(rumps.App):
 
     def set_config(self, new_config, save=True):
 
-
         default_config = self.get_default_config()
         utils.validate_config(default_config, new_config)
 
@@ -52,7 +50,6 @@ class WeChatDownloadsApp(rumps.App):
         with self.open('config.json', 'w') as f:
             json.dump(self._config, f)
         logger.info('Saved config.json')
-
 
     def get_config(self):
         return copy.deepcopy(self._config)
