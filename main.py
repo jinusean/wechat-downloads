@@ -9,7 +9,8 @@ if __name__ == '__main__':
     logging.config.fileConfig(fname=logging_config)
 
     # imports must come after logging is configured
-    from src.WeChatDownloadsApp import WeChatDownloadsApp
+    # from src.WeChatDownloadsApp import WeChatDownloadsApp
+    from src.App import WeChatDownloadsApp
     app = WeChatDownloadsApp()
 
     app.run()

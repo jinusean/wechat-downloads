@@ -1,6 +1,7 @@
 from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
 from src.DownloadsWatcher import DownloadsWatcher
+from src import ConfigManger
 import logging
 from pathlib import Path
 
@@ -8,28 +9,28 @@ logger = logging.getLogger(__name__)
 
 
 class WeChatWatcher:
-    def __init__(self, config):
-        self.config = config
+    def __init__(self):
         self.wechat_observer = None
-        self.messages_watcher = DownloadsWatcher(config)
+        self.downloads_watcher = DownloadsWatcher()
+
 
     def stop(self):
         if self.wechat_observer:
             self.wechat_observer.stop()
             self.wechat_observer.join()
             self.wechat_observer = None
-        self.messages_watcher.stop()
+        self.downloads_watcher.stop()
 
     def start(self):
         self.stop()
-        wechat_directory = self.config["wechat_directory"]
 
+        config = ConfigManger.config()
 
         def get_on_event(mode):
             def on_event(event):
                 path = Path(event.src_path)
                 if not path.is_dir():
-                    logger.info(str(path) + ' created (non-directories are ignored)')
+                    logger.info('{} {} (non-directories are ignored)'.format(str(path), mode))
                     return
                 logger.info('Restarting:', event.src_path, mode)
                 self.start()
@@ -47,8 +48,8 @@ class WeChatWatcher:
 
         # Create observer
         wechat_observer = Observer()
-        wechat_observer.schedule(wechat_dir_handler, wechat_directory, recursive=False)
+        wechat_observer.schedule(wechat_dir_handler, config['wechat_directory'], recursive=False)
 
         wechat_observer.start()
-        logger.info('Starting: ' + wechat_directory)
-        self.messages_watcher.start()
+        logger.info('Starting: ' + config['wechat_directory'])
+        self.downloads_watcher.start()

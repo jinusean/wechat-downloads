@@ -3,6 +3,7 @@ from pathlib import Path
 from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
 import logging
+from src import ConfigManger
 
 logger = logging.getLogger(__name__)
 
@@ -26,68 +27,59 @@ def get_filename_pieces(filename):
 
 
 def on_moved(event):
-    # image files are first 'created' as a temp file and then moved once it is downloaded
-    logger.info('Moved', Path(event.src_path).name, Path(event.dest_path).name)
-    a = event
-
-
-def get_on_moved(config):
-    def on_moved(event):
-        logger.info('Moved', Path(event.src_path).name + ' -> ' + Path(event.dest_path).name)
+    logger.info('Moved', Path(event.src_path).name + ' -> ' + Path(event.dest_path).name)
+    config = ConfigManger.config()
+    try:
+        save_dir = Path(config['save_directory'])
+        path = Path(event.dest_path)
+        filename = path.name
         try:
-            save_dir = Path(config['save_directory'])
-            path = Path(event.dest_path)
-            filename = path.name
-            try:
-                shutil.copyfile(path, save_dir / filename)
-            except IOError as io_error:
-                # if save_dir has not been made yet
-                save_dir.mkdir()
-                shutil.copyfile(path, save_dir / filename)
-            logger.info('Saved:', Path(event.src_path).name)
-        except Exception as e:
-            logger.info('on_created Error:')
-            logger.info(e)
-    return on_moved
+            shutil.copyfile(path, save_dir / filename)
+        except IOError as io_error:
+            # if save_dir has not been made yet
+            save_dir.mkdir()
+            shutil.copyfile(path, save_dir / filename)
+        logger.info('Saved:', Path(event.src_path).name)
+    except Exception as e:
+        logger.info('on_created Error:')
+        logger.info(e)
 
-def get_on_created(config):
-    def on_created(event):
-        logger.info('Created:', event.src_path)
-        try:
-            save_dir = Path(config['save_directory'])
-            path = Path(event.src_path)
-            filename = path.name
 
-            if not path.is_file() or filename in config['ignore_list']:
+def on_created(event):
+    logger.info('Created:', event.src_path)
+    config = ConfigManger.config()
+    try:
+        save_dir = Path(config['save_directory'])
+        path = Path(event.src_path)
+        filename = path.name
+
+        if not path.is_file() or filename in config['ignore_list']:
+            return
+
+        file, subextension, extension = get_filename_pieces(filename)
+
+        for invalid_subextension in config['invalid_subextensions']:
+            if invalid_subextension in subextension:
                 return
 
-            file, subextension, extension = get_filename_pieces(filename)
+        try:
+            shutil.copyfile(path, save_dir / filename)
+        except IOError as io_error:
+            # if save_dir has not been made yet
+            save_dir.mkdir()
+            shutil.copyfile(path, save_dir / filename)
 
-            for invalid_subextension in config['invalid_subextensions']:
-                if invalid_subextension in subextension:
-                    return
-
-            try:
-                shutil.copyfile(path, save_dir / filename)
-            except IOError as io_error:
-                # if save_dir has not been made yet
-                save_dir.mkdir()
-                shutil.copyfile(path, save_dir / filename)
-
-            logger.info('Saved:', Path(event.src_path).name)
-        except Exception as e:
-            logger.info('on_created Error:')
-            logger.info(e)
-
-    return on_created
-
+        logger.info('Saved:', Path(event.src_path).name)
+    except Exception as e:
+        logger.info('on_created Error:')
+        logger.info(e)
 
 class DownloadsWatcher:
-    def __init__(self, config):
+    def __init__(self):
         self.observers = []
-        self.config = config
         self._directory = None
         self._watching_dirs =[]
+
 
     def stop(self):
         for observer in self.observers:
@@ -99,10 +91,11 @@ class DownloadsWatcher:
         self._watching_dirs = []
 
     def find_latest_version_directory(self):
+        config = ConfigManger.config()
         last_modified = 0
         latest_dir = None
 
-        for dirpath in Path(self.config['wechat_directory']).iterdir():
+        for dirpath in Path(config['wechat_directory']).iterdir():
             if not dirpath.is_dir():
                 continue
 
@@ -129,8 +122,8 @@ class DownloadsWatcher:
             case_sensitive = True
             my_event_handler = PatternMatchingEventHandler(patterns, ignore_patterns, ignore_directories,
                                                            case_sensitive)
-            my_event_handler.on_created = get_on_created(self.config)
-            my_event_handler.on_moved = get_on_moved(self.config)
+            my_event_handler.on_created = on_created
+            my_event_handler.on_moved = on_moved
 
             # Create observer
             observer = Observer()

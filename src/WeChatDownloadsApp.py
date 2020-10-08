@@ -4,94 +4,102 @@ import logging
 import copy
 from .WeChatWatcherThread import WeChatWatcherThread
 from . import mac_dialogs, utils
+from .observables import ObservableDict
+from multiprocessing.managers import BaseManager, NamespaceProxy
+
+
 
 logger = logging.getLogger(__name__)
 
 
+class ConfigManager(BaseManager):
+    pass
+
+class ObservableDictProxy(NamespaceProxy):
+    _exposed_ = ('__getitem__', '__getattribute__')
+
+
+ConfigManager.register('ObservableDict', ObservableDict, ObservableDictProxy)
+
+
+
 class WeChatDownloadsApp(rumps.App):
+    _config_filename = 'config.json'
+    _default_config = None
+    _config = None
+
     def __init__(self):
         super().__init__(
             name='JamesLee',
             quit_button=None)
-        config = self.load_config()  # config must be loaded before all else
+        self.config_manager = ConfigManager()
+        self.config_manager.start()
+        self.load_config()  # config must be loaded before all else
 
         # initialize Show icon option
         show_icon_menuitem = rumps.MenuItem(title='Show icon', callback=self.toggle_icon)
-        show_icon_menuitem.state = config['show_icon']
+        show_icon_menuitem.state = self.config['show_icon']
         self.menu.add(show_icon_menuitem)
         self.update_icon()
 
-        self.wechat_watcher_thread = WeChatWatcherThread(config)
+        self.wechat_watcher_thread = WeChatWatcherThread(self.config)
         self.wechat_watcher_thread.daemon = True
 
-    def set_config(self, new_config, save=True):
-
-        default_config = self.get_default_config()
-        utils.validate_config(default_config, new_config)
-
-        if hasattr(self, 'config'):
-            current_config = self.config
-            if new_config['show_icon'] != current_config['show_icon']:
-                self.update_icon()
-            if new_config['wechat_directory'] != current_config['wechat_directory']:
-                self.wechat_watcher_thread.restart_watcher()
-
-        self._config = new_config
-
-        if save:
-            self.save_config()
-
-    def run(self):
-        logger.info('Starting')
-        self.wechat_watcher_thread.start()
-        super().run()
-
-    def save_config(self):
-        with self.open('config.json', 'w') as f:
-            json.dump(self._config, f)
-        logger.info('Saved config.json')
-
-    def get_config(self):
-        return copy.deepcopy(self._config)
-
-    def get_default_config(self):
-        if not hasattr(self, '_default_config'):
+    @property
+    def default_config(self):
+        if not self._default_config:
             self._default_config = utils.load_default_config()
         return copy.deepcopy(self._default_config)
 
+    @default_config.setter
+    def default_config(self, default_config):
+        self._default_config = default_config
+
+    @property
+    def config(self):
+        return self._config
+
+    @config.setter
+    def config(self, config):
+        self._config = config
+
+    def run(self):
+        logger.info('Starting')
+        # self.wechat_watcher_thread.start()
+        super().run()
+
+    def save_config(self):
+        config = self.config.target  # get dict instance of config
+        with self.open(self._config_filename, 'w') as f:
+            json.dump(config, f)
+        logger.info('Saved config.json')
+
     def update_icon(self):
         show_icon_menuitem = self.menu.get('Show icon')
-        config = self.get_config()
-        if config['show_icon']:
-            self.icon = config['icon']
+        if self.config['show_icon']:
+            self.icon = self.config['icon']
             self.title = None
             show_icon_menuitem.state = 1
         else:
             self.icon = None
-            self.title = config['title']
+            self.title = self.config['title']
             show_icon_menuitem.state = -1
 
     def load_config(self):
+        config = None
         try:
-            with self.open('config.json') as f:
+            with self.open(self._config_filename) as f:
                 config = json.load(f)
-                self.set_config(config, False)
-                logger.info('Loaded config.json')
-            return config
-        except Exception as e:
-            logger.warning(
-                'Error loading config.json from Application support. \n\tLoading .default_config.json instead')
-            logger.warning(e)
+        except FileNotFoundError:
+            logger.info('config.json not found in Application Support. Loading default instead.')
 
-        default_config = self.get_default_config()
-        self.set_config(default_config)
-        logger.info('Loaded default config')
-        return default_config
+        if not config:
+            config = self.default_config
+        self.config = self.config_manager.ObservableDict(config)
 
     def toggle_icon(self, _):
-        config = self.get_config()
-        config['show_icon'] = not config['show_icon']
-        self.set_config(config)
+        config = self.config
+        config.set('show_icon', not config.get('show_icon'))
 
     @rumps.clicked('Change save directory')
     def set_save_dir(self, _):
@@ -108,7 +116,7 @@ class WeChatDownloadsApp(rumps.App):
         res = mac_dialogs.dialog(message='Are you sure you want to reset your settings?', title='WeChat Downloads')
         if not res:
             return
-        self.set_config(self.get_default_config())
+        self.config = self.default_config
         mac_dialogs.confirm(message='Settings succesfully updated!', title='WeChats Download')
 
     @rumps.clicked('Quit')
@@ -118,15 +126,12 @@ class WeChatDownloadsApp(rumps.App):
         rumps.quit_application()
 
     def update_directory(self, config_key, message=None):
-        config = self.get_config()
-        original_dir = config[config_key]
+        original_dir = self.config[config_key]
         new_dir = mac_dialogs.directory(original_dir, message)
 
         if new_dir and original_dir == new_dir:
             return False
 
-        config[config_key] = new_dir
-
-        self.set_config(config)
+        self.config[config_key] = new_dir
         mac_dialogs.confirm('Directory successfully changed!', title='WeChat Downloads')
         return True

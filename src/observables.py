@@ -1,25 +1,42 @@
 from copy import deepcopy
 
+
 class ObservableDict:
     _observable = None
     _observers = None
 
-    def __init__(self, observable):
-        observable = deepcopy(observable)
-        self._observable = self._build_observable(observable)
+    def __init__(self, _dict):
+        self._observable = self._build_observable(_dict)
         self._observers = {}
+
+    def get_dict(self):
+        target = {}
+
+        for key, value in self._observable.items():
+            if isinstance(value, ObservableDict):
+                value = value.get_dict()
+            target[key] = value
+
+        return target
+
+    @property
+    def observable(self):
+        return self._observable
 
     def _build_observable(self, obj):
         observable = {}
 
         for key, value in obj.items():
-            if key in ObservableDict.__dict__:
-                print('Warning: class and object both has key: ' + key)
             if isinstance(value, dict):
                 value = ObservableDict(value)
+            else:
+                value = deepcopy(value)
             observable[key] = value
 
         return observable
+
+    def get(self, key):
+        return self[key]
 
     def __getitem__(self, key):
         return object.__getattribute__(self, '_observable')[key]
@@ -35,13 +52,8 @@ class ObservableDict:
 
         self._observable[key] = new_value
 
-
-
-    def __delattr__(self, key):
-        if key not in self._observable:
-            return
-
-        old_value = self._observable.get(key)
+    def __delitem__(self, key):
+        old_value = self._observable[key]
         for observer in self._observers[key].values():
             observer(old_value, None)
 
@@ -61,4 +73,3 @@ class ObservableDict:
 
     def clear(self, key):
         del self._observers[key]
-
