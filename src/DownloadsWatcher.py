@@ -7,6 +7,7 @@ from src import ConfigManger
 
 logger = logging.getLogger(__name__)
 
+
 def get_filename_pieces(filename):
     try:
         extension_index = filename.rindex('.')
@@ -74,12 +75,12 @@ def on_created(event):
         logger.info('on_created Error:')
         logger.info(e)
 
+
 class DownloadsWatcher:
     def __init__(self):
         self.observers = []
         self._directory = None
-        self._watching_dirs =[]
-
+        self._watching_dirs = []
 
     def stop(self):
         for observer in self.observers:

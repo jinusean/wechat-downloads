@@ -3,13 +3,15 @@ import logging
 from pathlib import Path
 from types import MappingProxyType
 from .observables import ObservableDict
+import shutil
 
 logger = logging.getLogger(__name__)
 
 _config = None
-_default_config = None
-_app = None
 _config_filename = None
+_default_config = None
+_default_config_filepath = Path.cwd() / '.default_config.json'
+_app = None
 
 
 def init(app, config_filename):
@@ -29,14 +31,14 @@ def load():
             config = json.load(f)
     except FileNotFoundError:
         logger.info('config.json not found in Application Support. Loading default instead.')
+    except Exception as e:
+        logger.error('Error loading config.json')
+        logger.error(e)
 
     if not config:
         config = default_config()
 
-    global _config
-    _config = ObservableDict(config)
-    return _config
-    # @TODO it's the app's job to attach the observers
+    return set(config)
 
 
 def save(config=None):
@@ -44,7 +46,7 @@ def save(config=None):
         config = _config.get_dict()
     with _app.open(_config_filename, 'w') as f:
         json.dump(config, f)
-    logger.info('Saved config.json')
+    logger.info('Saved ' + _config_filename)
 
 
 def _update_config_paths(config):
@@ -62,22 +64,30 @@ def _update_config_paths(config):
 def config():
     return _config
 
+
 def default_config():
     global _default_config
     if not _default_config:
-        with open(Path.cwd() / '.default_config.json') as f:
+        with open(_default_config_filepath) as f:
             config = json.load(f)
         config = _update_config_paths(config)
         config = MappingProxyType(config)
         _default_config = config
-
     return _default_config
 
-def reset():
-    save(_default_config)
+
+def set(config):
+    config = ObservableDict(config)
+    # save config if anything changes
+    config.watch(None, lambda key, old, new: save())
 
     global _config
-    _config = ObservableDict(_default_config)
-    return _config # it's the app's job to attach observers
+    _config = config
+
+    return config
 
 
+def reset():
+    # copy default config to application_suppert/config.json
+    Path(_app._application_support, _config_filename).unlink(missing_ok=True)
+    return load()
