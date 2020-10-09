@@ -3,7 +3,7 @@ from pathlib import Path
 from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
 import logging
-from src import ConfigManger
+from src import SettingsManager
 
 logger = logging.getLogger(__name__)
 
@@ -29,51 +29,42 @@ def get_filename_pieces(filename):
 
 def on_moved(event):
     logger.info('Moved', Path(event.src_path).name + ' -> ' + Path(event.dest_path).name)
-    config = ConfigManger.config()
+    settings = SettingsManager.settings()
+    save_dir = Path(settings['save_directory'])
+    path = Path(event.dest_path)
+    filename = path.name
     try:
-        save_dir = Path(config['save_directory'])
-        path = Path(event.dest_path)
-        filename = path.name
-        try:
-            shutil.copyfile(path, save_dir / filename)
-        except IOError as io_error:
-            # if save_dir has not been made yet
-            save_dir.mkdir()
-            shutil.copyfile(path, save_dir / filename)
-        logger.info('Saved:', Path(event.src_path).name)
-    except Exception as e:
-        logger.info('on_created Error:')
-        logger.info(e)
-
+        shutil.copyfile(path, save_dir / filename)
+    except IOError as io_error:
+        # if save_dir has not been made yet
+        save_dir.mkdir()
+        shutil.copyfile(path, save_dir / filename)
+    logger.info('Saved:', Path(event.src_path).name)
 
 def on_created(event):
-    logger.info('Created:', event.src_path)
-    config = ConfigManger.config()
-    try:
-        save_dir = Path(config['save_directory'])
-        path = Path(event.src_path)
-        filename = path.name
+    logger.info('Created:' + event.src_path)
+    settings = SettingsManager.settings()
+    save_dir = Path(settings['save_directory'])
+    path = Path(event.src_path)
+    filename = path.name
 
-        if not path.is_file() or filename in config['ignore_list']:
+    if not path.is_file() or filename in settings['ignore_list']:
+        return
+
+    file, subextension, extension = get_filename_pieces(filename)
+
+    for invalid_subextension in settings['invalid_subextensions']:
+        if invalid_subextension in subextension:
             return
 
-        file, subextension, extension = get_filename_pieces(filename)
+    try:
+        shutil.copyfile(path, save_dir / filename)
+    except IOError as io_error:
+        # if save_dir has not been made yet
+        save_dir.mkdir()
+        shutil.copyfile(path, save_dir / filename)
 
-        for invalid_subextension in config['invalid_subextensions']:
-            if invalid_subextension in subextension:
-                return
-
-        try:
-            shutil.copyfile(path, save_dir / filename)
-        except IOError as io_error:
-            # if save_dir has not been made yet
-            save_dir.mkdir()
-            shutil.copyfile(path, save_dir / filename)
-
-        logger.info('Saved:', Path(event.src_path).name)
-    except Exception as e:
-        logger.info('on_created Error:')
-        logger.info(e)
+    logger.info('Saved:', Path(event.src_path).name)
 
 
 class DownloadsWatcher:
@@ -92,11 +83,11 @@ class DownloadsWatcher:
         self._watching_dirs = []
 
     def find_latest_version_directory(self):
-        config = ConfigManger.config()
+        settings = SettingsManager.settings()
         last_modified = 0
         latest_dir = None
 
-        for dirpath in Path(config['wechat_directory']).iterdir():
+        for dirpath in Path(settings['wechat_directory']).iterdir():
             if not dirpath.is_dir():
                 continue
 

@@ -1,7 +1,7 @@
 from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
 from src.DownloadsWatcher import DownloadsWatcher
-from src import ConfigManger
+from src import SettingsManager
 import logging
 from pathlib import Path
 
@@ -24,7 +24,7 @@ class WeChatWatcher:
     def start(self):
         self.stop()
 
-        config = ConfigManger.config()
+        settings = SettingsManager.settings()
 
         def get_on_event(mode):
             def on_event(event):
@@ -48,8 +48,8 @@ class WeChatWatcher:
 
         # Create observer
         wechat_observer = Observer()
-        wechat_observer.schedule(wechat_dir_handler, config['wechat_directory'], recursive=False)
+        wechat_observer.schedule(wechat_dir_handler, settings['wechat_directory'], recursive=False)
 
         wechat_observer.start()
-        logger.info('Starting: ' + config['wechat_directory'])
+        logger.info('Starting: ' + settings['wechat_directory'])
         self.downloads_watcher.start()

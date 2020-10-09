@@ -1,0 +1,13 @@
+{
+  "wechat_directory": "/Users/suah/Library/Containers/com.tencent.xinWeChat/Data/Library/Application Support/com.tencent.xinWeChat",
+  "save_directory": "/Users/suah/Documents/WeChat Files",
+  "show_icon": false,
+  "title": "\u2764\ufe0f",
+  "icon": "images/icon.icns",
+  "exclude_files": [
+    ".DS_Store"
+  ],
+  "exclude_subextensions": [
+
+  ]
+}
