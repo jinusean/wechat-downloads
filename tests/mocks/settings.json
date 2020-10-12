@@ -9,7 +9,7 @@
   ],
   "exclude_subextensions": [
     ".pic_thumb",
-    ".video_thumb",
-    ".dftemp"
+    ".video_thumb"
+
   ]
 }

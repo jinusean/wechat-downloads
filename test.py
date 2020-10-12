@@ -1,34 +1,24 @@
-# from threading import Thread, Event
-# import time
-# from src.observables import ObservableDict
-#
-# def thread_fn(event, config):
-#     print('Starting thread:', config['a'])
-#     while not event.wait(1):
-#         print('waiting...:', config['a'])
-#         continue
-#     print('Thread stopped')
-#
-# def main():
-#     event = Event()
-#
-#     config = dict(a='a')
-#     config = ObservableDict(config)
-#     thread = Thread(target=thread_fn, args=(event,config))
-#     thread.start()
-#     config['a'] = 'b'
-#     time.sleep(3)
-#     event.set()
-#     thread.join()
-#
-#
-# main()
-#
+def get_filename_pieces(filename):
+    try:
+        extension_index = filename.rindex('.')
+    except ValueError:
+        return (filename, '', '')
+
+    extension = filename[extension_index:]
+
+    try:
+        second_dot_index = filename.rindex('.', 0, extension_index)
+    except ValueError:
+        file = filename[:extension_index]
+        return (file, '', extension)
+
+    subextension = filename[second_dot_index: extension_index]
+    file = filename[:second_dot_index]
+    return (file, subextension, extension)
 
 
-from dotenv import load_dotenv
-import os
+# print(get_filename_pieces("13.pic_hd.dftemp.jpg"))
 
-load_dotenv()
-
-print(os.environ.get('asdf'))
+from  pathlib import Path
+a = Path("/Users/suah/Datasets/Binance/binance.zip")
+print(a.parent / ('hi' + 'asdf'))

@@ -1,5 +1,5 @@
 from unittest import TestCase
-from src.observables import ObservableDict
+from observables import ObservableDict
 
 
 class ObservableDictTest(TestCase):

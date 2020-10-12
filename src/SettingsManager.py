@@ -2,7 +2,7 @@ import json
 import logging
 from pathlib import Path
 from types import MappingProxyType
-from .observables import ObservableDict
+from observables import ObservableDict
 
 logger = logging.getLogger(__name__)
 
@@ -67,8 +67,10 @@ def settings():
 def default_settings():
     global _default_settings
     if not _default_settings:
+        # lazy load default settings
         with open(_default_settings_filepath) as f:
             settings = json.load(f)
+
         settings = _update_settings_paths(settings)
         settings = MappingProxyType(settings)
         _default_settings = settings

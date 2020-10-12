@@ -22,18 +22,18 @@ class TkinterProcess(Process):
             try:
                 recv = self.pipe_conn.recv()
                 cmd = recv[0]
-                logger.info('TkinterProcess:',cmd)
+                logger.info('TkinterProcess: ' + cmd)
 
                 if cmd == 'terminate':
                     break
 
                 if cmd == 'askdirectory':
                     res = askdirectory(initialdir=recv[1])
-                    logger.info('askdirectory', res)
+                    logger.info('askdirectory ' + res)
                     self.pipe_conn.send(res)
                 elif cmd == 'showinfo':
                     res = messagebox.showinfo(title='WeChatDownloads',message=recv[1])
-                    logger.info('showinfo', res)
+                    logger.info('showinfo ' +  res)
                     self.pipe_conn.send(res)
                 elif cmd == 'askyesno':
                     res = messagebox.askyesno(title='WeChatDownloads', message=recv[1])
