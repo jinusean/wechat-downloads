@@ -1,10 +1,8 @@
 from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
-from src.Settings import Settings
-import shutil
 import logging
 from pathlib import Path
-from src.Manager import Manager
+from src.managers import WatchersManager, SyncManager
 from src.utils import validate_file_and_copy, copy_file
 
 logger = logging.getLogger('UserWatcher')
@@ -32,7 +30,7 @@ class UserWatcher:
     def stop(self):
         self.observer.stop()
         self.observer = None
-        Manager().remove(self, self.watching_dir)
+        WatchersManager().remove(self, self.watching_dir)
         self.watching_dir = None
 
     def start(self):
@@ -57,4 +55,4 @@ class UserWatcher:
 
         self.observer = observer
         self.watching_dir = message_temp_dir
-        Manager().add(self, message_temp_dir)
+        WatchersManager().add(self, message_temp_dir)

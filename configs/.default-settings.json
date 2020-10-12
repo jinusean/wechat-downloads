@@ -4,8 +4,6 @@
   "show_icon": false,
   "title": "\u2764\ufe0f",
   "icon": "images/icon.icns",
-  "autosync": true,
-  "last_sync": 0,
   "exclude_files": [
     ".DS_Store"
   ],

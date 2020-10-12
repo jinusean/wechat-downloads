@@ -1,6 +1,8 @@
 from lib.Singleton import Singleton
+from lib import debounce
 import json
 import logging
+import time
 from pathlib import Path
 from types import MappingProxyType
 from lib.observables import ObservableDict
@@ -62,7 +64,8 @@ class Settings(metaclass=Singleton):
     def settings(self, settings):
         settings = ObservableDict(settings)
         # save configs if anything changes
-        settings.watch(None, lambda key, old, new: self.save())
+        save_debounced = debounce(3)(self.save)
+        settings.watch(None, lambda key, old, new: save_debounced())
         self._settings = settings
 
     @property

@@ -3,7 +3,7 @@ from src.watchers.UserWatcher import UserWatcher
 from lib.watchers import DirectoryWatcher
 import logging
 from abc import abstractmethod
-from src.Manager import Manager
+from src.managers import WatchersManager
 
 
 def logger(self):
@@ -22,7 +22,7 @@ class _WeChatWatcher(DirectoryWatcher):
         self.delete_watcher(event.src_path)
 
     def on_start(self):
-        Manager().add(self, self.directory)
+        WatchersManager().add(self, self.directory)
         for path in Path(self.directory).iterdir():
             self.watch_dir(str(path))
 
@@ -30,7 +30,7 @@ class _WeChatWatcher(DirectoryWatcher):
             logger(self).warning('No valid children directories found')
 
     def stop(self):
-        Manager().remove(self, self.directory)
+        WatchersManager().remove(self, self.directory)
         super().stop()
 
 
