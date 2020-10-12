@@ -1,28 +1,15 @@
 import os
-from dotenv import load_dotenv
+from pathlib import Path
+from dotenv import load_dotenv, find_dotenv
 
-load_dotenv()
-
-# save unhandled exceptions to log file
-
-import sys,traceback
-import mac_dialogs
-
-
-# save unhandled exceptions to log file
-def handle_uncaught_exceptions(exctype, value, tb):
-    exception_string = ''.join(traceback.format_list(traceback.extract_tb(tb)))
-    logging.error(exception_string)
-    mac_dialogs.confirm(message='Fatal error encountered. Please contact the developer.\n\nApplication will now close', title='WeChat Downloads Fatal Error')
-    excepthook(exctype, value, tb)
-
-excepthook = sys.excepthook
-sys.excepthook = handle_uncaught_exceptions
+load_dotenv(find_dotenv())
 
 def produce():
     from logging.handlers import RotatingFileHandler
+    import logging
     import sys, traceback
-    from src import mac_dialogs
+    from lib import mac_dialogs
+
 
     # Ensure logs directory exists
     logs_filepath = os.getenv('LOGGING_FILEPATH')
@@ -51,7 +38,6 @@ def produce():
 
     excepthook = sys.excepthook
     sys.excepthook = handle_uncaught_exceptions
-
 
 def develop():
     import logging.config
@@ -82,9 +68,8 @@ def develop():
 
 
 if __name__ == '__main__':
-    import logging
-    from pathlib import Path
-
+    # setup.py calls load_dotenv()
+    # if there are no .env vars set, it means it is is dev mode
     if os.environ.get('PY_ENV') == 'production':
         produce()
     else:

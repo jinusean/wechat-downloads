@@ -1,24 +1,10 @@
-def get_filename_pieces(filename):
-    try:
-        extension_index = filename.rindex('.')
-    except ValueError:
-        return (filename, '', '')
+import time
+from datetime import datetime
+from pathlib import Path
 
-    extension = filename[extension_index:]
+path = '/Users/suah/Library/Containers/com.tencent.xinWeChat/Data/Library/Application Support/com.tencent.xinWeChat/2.0b4.0.9/793882e700a3e1cc5a272b7250085985/Message/MessageTemp/7830407957a874fa5bbe67a10f14cebe/Video'
+path = Path(path)
 
-    try:
-        second_dot_index = filename.rindex('.', 0, extension_index)
-    except ValueError:
-        file = filename[:extension_index]
-        return (file, '', extension)
-
-    subextension = filename[second_dot_index: extension_index]
-    file = filename[:second_dot_index]
-    return (file, subextension, extension)
-
-
-# print(get_filename_pieces("13.pic_hd.dftemp.jpg"))
-
-from  pathlib import Path
-a = Path("/Users/suah/Datasets/Binance/binance.zip")
-print(a.parent / ('hi' + 'asdf'))
+stat = path.stat()
+last = stat.st_mtime
+print(datetime.fromtimestamp(last))

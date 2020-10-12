@@ -1,10 +1,6 @@
-from pathlib import Path
 from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
-import logging
 
-def logger(self):
-    return logging.getLogger(self.__class__.__name__)
 
 class DirectoryWatcher:
     # overrideable methods
@@ -40,7 +36,6 @@ class DirectoryWatcher:
         del self.watchers[path]
 
     def stop(self):
-        logger(self).info('Stopped: ' + self.directory)
         for watcher in self.watchers.values():
             watcher.stop()
         self.watchers = {}
@@ -64,7 +59,5 @@ class DirectoryWatcher:
         observer.schedule(handler, self.directory, recursive=self.recursive)
         observer.start()
         self.observer = observer
-
-        logger(self).info('Watching: ' + self.directory)
 
         self.on_start()

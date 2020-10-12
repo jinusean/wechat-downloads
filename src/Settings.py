@@ -3,7 +3,7 @@ import json
 import logging
 from pathlib import Path
 from types import MappingProxyType
-from observables import ObservableDict
+from lib.observables import ObservableDict
 
 logger = logging.getLogger('Settings')
 
@@ -21,6 +21,7 @@ def update_settings_paths(settings):
 
 
 DEFUALT_SETTINGS_FILEPATH = Path.cwd() / 'configs/.default-settings.json'
+
 
 class Settings(metaclass=Singleton):
     _settings = None
@@ -48,8 +49,6 @@ class Settings(metaclass=Singleton):
             return object.__getattribute__(self, item)
         except AttributeError:
             return getattr(self.settings, item)
-
-
 
     @property
     def app(self):
