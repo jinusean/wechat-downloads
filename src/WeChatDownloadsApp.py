@@ -73,7 +73,7 @@ class WeChatDownloadsApp(rumps.App):
     def set_save_dir(self, _):
         self.update_directory('save_directory', 'Select directory to save files')
 
-    @rumps.clicked('Change WeChat directory')
+    @rumps.clicked('More Options', 'Change WeChat directory')
     def set_wechat_dir(self, _):
         self.update_directory('wechat_directory', 'Select WeChat directory')
 
