@@ -5,10 +5,14 @@ Usage:
     python setup.py py2app
 """
 from setuptools import setup
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 
 setup(
-    name='WeChat Downloads',
+    name=os.getenv('APP_NAME'),
     app=['main_prod.py'],
     data_files=[
         '.env',

@@ -74,14 +74,14 @@ class WatchersManager(metaclass=Singleton):
             self.sync_times[dir] = time.time()
             self.debounced_save()
 
-    def sync_dir(self, dir):
+    def sync_dir(self, dir, all=False):
         start_time = self.sync_times.get(dir) or 0
         end_time = time.time()
         count = 0
         for file in utils.iter_files(dir):
             stat = file.stat()
             modified_time = stat.st_mtime
-            if start_time > modified_time or modified_time > end_time or not utils.validate_file(file):
+            if not all and (start_time > modified_time or modified_time > end_time or not utils.validate_file(file)):
                 # if last synced happened after file modification
                 # if app has started before file modification
                 continue
@@ -96,5 +96,5 @@ class WatchersManager(metaclass=Singleton):
     def sync_all(self):
         count = 0
         for dir in self.sync_times.keys():
-            count += self.sync_dir(dir)
+            count += self.sync_dir(dir, all=True)
         return count

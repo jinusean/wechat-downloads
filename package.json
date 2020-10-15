@@ -6,7 +6,9 @@
   "license": "MIT",
   "scripts": {
     "clean": "rm -rf build dist",
-    "build": "export PY_ENV=production && yarn clean  && python setup.py py2app",
-    "open": "open 'dist/WeChat Downloads.app/Contents/MacOS/WeChat Downloads'"
+    "build-app": "export PY_ENV=production && yarn clean  && python setup.py py2app",
+    "build-dmg": "export PY_ENV=production && dmgbuild -s dmg_settings.py WeSave WeSave",
+    "build": "yarn build-app && yarn build-dmg",
+    "open": "open 'dist/WeSave.app/Contents/MacOS/WeSave'"
   }
 }
