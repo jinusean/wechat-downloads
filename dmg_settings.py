@@ -22,26 +22,28 @@ from datetime import datetime
 
 # .. Useful stuff ..............................................................
 
-application = defines.get('app', './dist/' + os.getenv('APP_NAME')+ '.app')
+application = defines.get('app', './dist/' + os.getenv('APP_NAME') + '.app')
 appname = os.path.basename(application)
+
 
 def icon_from_app(app_path):
     plist_path = os.path.join(app_path, 'Contents', 'Info.plist')
     plist = biplist.readPlist(plist_path)
     icon_name = plist['CFBundleIconFile']
-    icon_root,icon_ext = os.path.splitext(icon_name)
+    icon_root, icon_ext = os.path.splitext(icon_name)
     if not icon_ext:
         icon_ext = '.icns'
     icon_name = icon_root + icon_ext
     return os.path.join(app_path, 'Contents', 'Resources', icon_name)
 
+
 # .. Basics ....................................................................
 
 # Uncomment to override the output filename
-filename = 'dist/' + os.getenv('APP_NAME') + '.dmg'
+filename = 'dist/' + os.getenv('APP_NAME') + '_' + datetime.today().strftime('%Y_%m_%d_%H:%M:%S') + '.dmg'
 
 # Uncomment to override the output volume name
-volume_name = os.getenv('APP_NAME') + '_' + datetime.today().strftime('%Y_%m_%d_%H:%M:%S')
+volume_name = os.getenv('APP_NAME')
 
 # Volume format (see hdiutil create -help)
 format = defines.get('format', 'UDBZ')
@@ -53,10 +55,10 @@ format = defines.get('format', 'UDBZ')
 size = defines.get('size', None)
 
 # Files to include
-files = [ application ]
+files = [application]
 
 # Symlinks to create
-symlinks = { 'Applications': '/Applications' }
+symlinks = {'Applications': '/Applications'}
 
 # Files to hide
 # hide = [ 'Secret.data' ]
@@ -71,14 +73,14 @@ symlinks = { 'Applications': '/Applications' }
 # will be used to badge the system's Removable Disk icon. Badge icons require
 # pyobjc-framework-Quartz.
 #
-#icon = '/path/to/icon.icns'
+# icon = '/path/to/icon.icns'
 badge_icon = icon_from_app(application)
 
 # Where to put the icons
 icon_locations = {
-    appname:        (140, 120),
+    appname: (140, 120),
     'Applications': (500, 120)
-    }
+}
 
 # .. Window configuration ......................................................
 
@@ -137,7 +139,7 @@ arrange_by = None
 grid_offset = (0, 0)
 grid_spacing = 100
 scroll_position = (0, 0)
-label_pos = 'bottom' # or 'right'
+label_pos = 'bottom'  # or 'right'
 text_size = 16
 icon_size = 128
 
@@ -174,7 +176,7 @@ list_column_widths = {
     'label': 100,
     'version': 75,
     'comments': 300,
-    }
+}
 list_column_sort_directions = {
     'name': 'ascending',
     'date-modified': 'descending',
@@ -186,7 +188,7 @@ list_column_sort_directions = {
     'label': 'ascending',
     'version': 'ascending',
     'comments': 'ascending',
-    }
+}
 
 # .. License configuration .....................................................
 
