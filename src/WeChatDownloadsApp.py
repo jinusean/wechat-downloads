@@ -3,8 +3,7 @@ from pathlib import Path
 from src.watchers import WeChatWatcher
 from lib import mac_dialogs
 from src.Settings import Settings
-from src.managers import WatchersManager, SyncManager
-from src import utils
+from src.managers import WatchersManager
 
 logger = logging.getLogger('WeChatDownloadsApp')
 
@@ -12,13 +11,10 @@ logger = logging.getLogger('WeChatDownloadsApp')
 class WeChatDownloadsApp(rumps.App):
     def __init__(self, name, settings):
         super().__init__(name=name, quit_button=None)
-        start_time = time.time()
-
         self.settings = Settings(self, settings)
         self.watch_settings(self.settings)
 
         self.watchers_manager = WatchersManager(self, os.getenv('SYNC_FILENAME'))
-
 
         # initialize Show icon option
         show_icon_menuitem = rumps.MenuItem(title='Daddy', callback=self.toggle_icon)
@@ -29,10 +25,6 @@ class WeChatDownloadsApp(rumps.App):
         self.update_icon()  # update show_icon menu
 
         self.wechat_watcher = WeChatWatcher(self.settings['wechat_directory'])
-
-
-
-
 
     def watch_settings(self, settings):
         def on_wechat_directory(old, new):
@@ -47,7 +39,6 @@ class WeChatDownloadsApp(rumps.App):
         logger.info('Starting')
         self.wechat_watcher.start()
         super().run()
-
 
     def update_icon(self):
         show_icon_menuitem = self.menu.get('More Options').get('Daddy')
@@ -86,21 +77,25 @@ class WeChatDownloadsApp(rumps.App):
     def set_wechat_dir(self, _):
         self.update_directory('wechat_directory', 'Select WeChat directory')
 
-    @rumps.clicked('More Options', 'Reset settingss')
+    @rumps.clicked('More Options', 'Reset Settings')
     def reset_preferences(self, _):
-        res = mac_dialogs.dialog(message='Are you sure you want to reset your settingss?', title='WeChat Downloads')
+        title= 'WeChats Download: Reset Settings'
+        res = mac_dialogs.dialog(message='Are you sure you want to reset your settingss?', title=title)
         if not res:
             return
         settings = Settings()
         settings.reset()
         self.watch_settings(settings)
-        mac_dialogs.confirm(message='Settings succesfully updated!', title='WeChats Download')
+        mac_dialogs.confirm(message='Settings succesfully updated!', title=title)
 
     @rumps.clicked('Sync all')
     def sync_all(self, _):
-        utils.sync_all()
+        count = self.watchers_manager.sync_all()
+        message = 'Synced {} files to:\n {}!'.format(count, self.settings['save_directory'])
+        mac_dialogs.confirm(message=message, title='WeChats Download: Sync All')
 
     @rumps.clicked('Quit')
     def quit(self, _):
         self.wechat_watcher.stop()
+        self.watchers_manager.save()
         rumps.quit_application()

@@ -2,7 +2,7 @@ from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
 import logging
 from pathlib import Path
-from src.managers import WatchersManager, SyncManager
+from src.managers import WatchersManager
 from src.utils import validate_file_and_copy, copy_file
 
 logger = logging.getLogger('UserWatcher')
@@ -46,7 +46,6 @@ class UserWatcher:
 
         handler.on_created = self.on_created
         handler.on_moved = self.on_moved
-        handler.on_deleted = lambda event: print('Deleted: {}'.format(event.src_path))
 
         # Create observer
         observer = Observer()

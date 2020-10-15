@@ -2,7 +2,6 @@ from lib.Singleton import Singleton
 from lib import debounce
 import json
 import logging
-import time
 from pathlib import Path
 from types import MappingProxyType
 from lib.observables import ObservableDict
@@ -86,9 +85,9 @@ class Settings(metaclass=Singleton):
             with self._app.open(self._filename) as f:
                 settings = json.load(f)
         except FileNotFoundError:
-            logger.info('configs.json not found in Application Support. Loading default instead.')
+            logger.info('{} not found in Application Support. Loading default instead.'.format(self._filename))
         except Exception as e:
-            logger.error('Error loading configs.json')
+            logger.error('Error loading {}'.format(self._filename))
             logger.error(e)
 
         if not settings:

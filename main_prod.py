@@ -1,8 +1,11 @@
-
-
 if __name__ == "__main__":
     import os
+    import time
+    import signal
+
+    # --------------------------- LOAD ENV VARIABLES ---------------------------
     from dotenv import load_dotenv, find_dotenv
+
     load_dotenv(find_dotenv())
     os.environ["PY_ENV"] = "production"
 
@@ -10,11 +13,10 @@ if __name__ == "__main__":
     print('Running in {} mode'.format(os.getenv('PY_ENV')))
     print('----------------------------------')
 
+    # --------------------------- LOGGING ---------------------------
     from pathlib import Path
     from logging.handlers import RotatingFileHandler
     import logging
-    import sys, traceback
-    from lib import mac_dialogs
 
     # Ensure logs directory exists
     logs_filepath = os.getenv('LOGGING_FILEPATH')
@@ -35,20 +37,56 @@ if __name__ == "__main__":
     )
 
 
-    # save unhandled exceptions to log file
-    def handle_uncaught_exceptions(exctype, value, tb):
-        exception_string = ''.join(traceback.format_list(traceback.extract_tb(tb)))
-        logging.error(exception_string)
-        mac_dialogs.confirm(message='Application encountered a fatal error\nContact the developer',
-                            title='WeChat Downloads Fatal Error')
-        excepthook(exctype, value, tb)
+    PID_FILEPATH = os.getenv('PID_FILEPATH')
+
+    while True:
+        try:
+            # --------------------------- Handle PID ---------------------------
+            with open(PID_FILEPATH, 'r+') as pid_file:
+
+                pid = pid_file.read()
+                if pid:
+                    for pid in pid.strip().split('\n'):
+                        logging.info('Killing: {}'.format(pid))
+                        # kill previous instance
+                        try:
+                            os.kill(int(pid), signal.SIGTERM)
+                        except ProcessLookupError:
+                            pass
+                    pid_file.seek(0)
+                    pid_file.truncate()
+        except FileNotFoundError as e:
+            pass
+        except Exception as e:
+            logging.error(e)
+            # wait before retrying
+            time.sleep(0.05)
+
+        pid = os.getpid()
+        logging.info('Starting PID: {}'.format(pid))
+        with open(PID_FILEPATH, 'a') as pid_file:
+            pid_file.write(str(pid) + '\n')
+
+        # --------------------------- UNHANDLED EXPCETIONS ---------------------------
+        # Only catches exceptions that occur outside of application
+
+        import sys, traceback
+        from lib import mac_dialogs
+
+        def handle_uncaught_exceptions(exctype, value, tb):
+            exception_string = ''.join(traceback.format_list(traceback.extract_tb(tb)))
+            logging.error(exception_string)
+            mac_dialogs.confirm(message='Application encountered a fatal error\nContact the developer',
+                                title='WeChat Downloads Fatal Error')
+            excepthook(exctype, value, tb)
 
 
-    excepthook = sys.excepthook
-    sys.excepthook = handle_uncaught_exceptions
+        excepthook = sys.excepthook
+        sys.excepthook = handle_uncaught_exceptions
 
-    from src.WeChatDownloadsApp import WeChatDownloadsApp
+        # --------------------------- START APP ---------------------------
+        from src.WeChatDownloadsApp import WeChatDownloadsApp
 
-    app = WeChatDownloadsApp(name=os.getenv('APP_NAME'), settings=os.getenv('SETTINGS_FILENAME'))
-    logging.info('Running in {} mode'.format(os.getenv('PY_ENV')))
-    app.run()
+        app = WeChatDownloadsApp(name=os.getenv('APP_NAME'), settings=os.getenv('SETTINGS_FILENAME'))
+        logging.info('Running in {} mode'.format(os.getenv('PY_ENV')))
+        app.run()

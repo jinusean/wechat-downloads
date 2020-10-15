@@ -12,7 +12,7 @@ setup(
     app=['main_prod.py'],
     data_files=[
         '.env',
-        ('.default-settings.json', ['configs/.default-settings.json']),
+        ('configs', ['configs/.default-settings.json']),
         ('images', ['images/icon.icns'])],
     options={
         'py2app': {

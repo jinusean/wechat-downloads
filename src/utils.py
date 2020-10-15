@@ -1,9 +1,6 @@
 from pathlib import Path
 from src.Settings import Settings
-from src.managers import WatchersManager
-from lib import mac_dialogs
 import shutil
-import rumps
 
 
 def get_filename_pieces(filename):
@@ -56,6 +53,7 @@ def validate_file(filepath):
 
     return True
 
+
 def validate_file_and_copy(filepath):
     if validate_file(filepath):
         copy_file(filepath)
@@ -63,48 +61,8 @@ def validate_file_and_copy(filepath):
     return False
 
 
-
-
-
 def iter_files(path):
     path = Path(path)
     for file in path.glob('**/*'):
         if file.is_file():
             yield file
-
-
-def sync_files(start_time, end_time):
-
-    count = 0
-    for file in iter_user_files():
-        stat = file.stat()
-        modified_time = stat.st_mtime
-        if start_time > modified_time or modified_time > end_time:
-            # if last synced happened after file modification
-            # if app has started before file modification
-            continue
-        copy_file(file)
-        count += 1
-    print("Synced {} files".format(count))
-    rumps.notification(message="Synced {} files".format(count), title="WeChat Downloads", subtitle='Autosync')
-
-
-
-def iter_user_files():
-    manager = WatchersManager()
-    for dir in manager.get_dirs_by_cls('UserWatcher'):
-        for file in iter_files(dir):
-            if validate_file(file):
-                yield file
-
-def sync_all():
-    count = 0
-    for file in iter_files():
-        copy_file(file)
-        count += 1
-
-    if count == 0:
-        message = 'No files to copy...'
-    else:
-        message = 'Copied {} files to:\n{}!'.format(count, Settings()['save_directory'])
-    rumps.notification(message=message, title="WeChat Downloads", subtitle='Sync all files')
