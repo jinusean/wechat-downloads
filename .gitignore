@@ -1,8 +1,8 @@
 venv
 .DS_Store
 build
-dist
 __pycache__
 .idea
 logs
-
+.env
+__unused__

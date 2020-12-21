@@ -23,7 +23,7 @@ setup(
             'iconfile': 'images/icon.icns',
             'plist': {
                 'LSBackgroundOnly': True,
-                'CFBundleIdentifier': 'com.jameslee.wechat_downloads',
+                'CFBundleIdentifier': 'com.wechat_downloads',
             }
         }
     },
