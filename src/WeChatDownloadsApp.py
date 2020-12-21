@@ -13,16 +13,13 @@ class WeChatDownloadsApp(rumps.App):
         super().__init__(name=name, quit_button=None)
         self.settings = Settings(self, settings)
         self.watch_settings(self.settings)
-
+        self.icon = self.settings['icon']
         self.watchers_manager = WatchersManager(self, os.getenv('SYNC_FILENAME'))
 
         # initialize Show icon option
-        show_icon_menuitem = rumps.MenuItem(title='Daddy', callback=self.toggle_icon)
 
         more_options = rumps.MenuItem(title='More Options')
-        more_options.add(show_icon_menuitem)
         self.menu.add(more_options)
-        self.update_icon()  # update show_icon menu
 
         self.wechat_watcher = WeChatWatcher(self.settings['wechat_directory'])
 
@@ -32,7 +29,6 @@ class WeChatDownloadsApp(rumps.App):
             self.wechat_watcher = WeChatWatcher(new)
             self.wechat_watcher.start()
 
-        settings.watch('show_icon', lambda old, new: self.update_icon())
         settings.watch('wechat_directory', on_wechat_directory)
 
     def run(self):
@@ -40,21 +36,6 @@ class WeChatDownloadsApp(rumps.App):
         self.wechat_watcher.start()
         super().run()
 
-    def update_icon(self):
-        show_icon_menuitem = self.menu.get('More Options').get('Daddy')
-        settings = self.settings
-        if settings['show_icon']:
-            self.icon = settings['icon']
-            self.title = None
-            show_icon_menuitem.state = 1
-        else:
-            self.icon = None
-            self.title = settings['title']
-            show_icon_menuitem.state = 0
-
-    def toggle_icon(self, _):
-        key = dict(Daddy='show_icon')[_.title]
-        self.settings[key] = not self.settings[key]
 
     def update_directory(self, settings_key, message=None):
         original_dir = self.settings[settings_key]
@@ -69,7 +50,7 @@ class WeChatDownloadsApp(rumps.App):
         mac_dialogs.confirm('Directory successfully changed!', title='WeChat Downloads')
         return True
 
-    @rumps.clicked('Change save directory')
+    @rumps.clicked('More Options', 'Change save directory')
     def set_save_dir(self, _):
         self.update_directory('save_directory', 'Select directory to save files')
 

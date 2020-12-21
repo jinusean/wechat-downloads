@@ -7,8 +7,8 @@
   "scripts": {
     "clean": "rm -rf build dist",
     "build-app": "export PY_ENV=production && yarn clean  && python setup.py py2app",
-    "build-dmg": "export PY_ENV=production && dmgbuild -s dmg_settings.py WeSave WeSave",
+    "build-dmg": "export PY_ENV=production && dmgbuild -s dmg_settings.py 'WeChat Downloads' 'WeChat_Downloads.dmg'",
     "build": "yarn build-app && yarn build-dmg",
-    "open": "open 'dist/WeSave.app/Contents/MacOS/WeSave'"
+    "open": "open 'dist/WeChat Downloads.app/Contents/MacOS/WeChat Downloads'"
   }
 }
