@@ -1,9 +1,0 @@
-don't use tkprocess, use rumps instaed
-figure out a way to ask for directory
-
-cmd = b"""choose folder with prompt "Please select an output folder:" """
-        proc = Popen(["osascript", '-'], stdin=PIPE, stdout=PIPE)
-        file_path, _ = proc.communicate(cmd)
-        file_path = file_path.decode("utf-8").replace("alias Macintosh HD",'').replace('\n','').replace(':','/')
-        if proc.returncode == 0:
-            print(file_path)
