@@ -51,7 +51,7 @@ class DirectoryWatcher:
             case_sensitive=self.case_sensitive)
 
         for event_method in ['on_created', 'on_deleted', 'on_modified', 'on_moved']:
-            if hasattr(self, event_method):
+            if hasattr(self, event_method) and getattr(self, event_method):
                 setattr(handler, event_method, getattr(self, event_method))
 
         # Create observer

@@ -55,3 +55,4 @@ class UserWatcher:
         self.observer = observer
         self.watching_dir = message_temp_dir
         WatchersManager().add(self, message_temp_dir)
+

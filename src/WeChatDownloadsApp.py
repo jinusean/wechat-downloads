@@ -16,8 +16,6 @@ class WeChatDownloadsApp(rumps.App):
         self.icon = self.settings['icon']
         self.watchers_manager = WatchersManager(self, os.getenv('SYNC_FILENAME'))
 
-        # initialize Show icon option
-
         more_options = rumps.MenuItem(title='More Options')
         self.menu.add(more_options)
 
